@@ -3,33 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Source Code on Black Canvas</title>
+    <title> Homework 1 Code Display</title>
     <style>
         body {
             margin: 0;
-            background-color: black;
+            padding: 20px;
+            background-color: black; /* Black background */
+            color: limegreen; /* Neon green text */
+            font-family: "Consolas", "Courier New", monospace; /* Monospaced font for code */
         }
-        canvas {
-            display: block;
-            margin: 0 auto;
-            background-color: black;
-            border: 1px solid #333;
+        pre {
+            white-space: pre-wrap; /* Preserve formatting */
+            word-wrap: break-word; /* Allow long lines to wrap */
         }
     </style>
 </head>
 <body>
 
-    <canvas id="codeCanvas" width="1000" height="600"></canvas>
-
-    <script>
-        const code = `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Server Penetration Simulation</title>
-    <style>
+    <pre><code>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Server Penetration Simulation&lt;/title&gt;
+    &lt;style&gt;
         body {
             font-family: Arial, sans-serif;
         }
@@ -57,27 +55,27 @@
             margin-top: 20px;
             border: 1px solid black;
         }
-    </style>
-</head>
-<body>
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
 
-    <h1>Server Penetration Simulation</h1>
-    <form id="configForm">
-        <label for="n">Number of Servers (n):</label>
-        <input type="number" id="n" name="n" min="1" value="100" required><br>
+    &lt;h1&gt;Server Penetration Simulation&lt;/h1&gt;
+    &lt;form id="configForm"&gt;
+        &lt;label for="n"&gt;Number of Servers (n):&lt;/label&gt;
+        &lt;input type="number" id="n" name="n" min="1" value="100" required&gt;&lt;br&gt;
 
-        <label for="m">Number of Attackers (m):</label>
-        <input type="number" id="m" name="m" min="1" value="5" required><br>
+        &lt;label for="m"&gt;Number of Attackers (m):&lt;/label&gt;
+        &lt;input type="number" id="m" name="m" min="1" value="5" required&gt;&lt;br&gt;
 
-        <label for="p">Penetration Probability (p):</label>
-        <input type="text" id="p" name="p" value="0.3" required><br>
+        &lt;label for="p"&gt;Penetration Probability (p):&lt;/label&gt;
+        &lt;input type="text" id="p" name="p" value="0.3" required&gt;&lt;br&gt;
 
-        <button type="submit">Generate Chart</button>
-    </form>
+        &lt;button type="submit"&gt;Generate Chart&lt;/button&gt;
+    &lt;/form&gt;
 
-    <canvas id="chartCanvas" width="1000" height="600"></canvas>
+    &lt;canvas id="chartCanvas" width="1000" height="600"&gt;&lt;/canvas&gt;
 
-    <script>
+    &lt;script&gt;
         document.getElementById("configForm").addEventListener("submit", function(event) {
             event.preventDefault();
             const n = parseInt(document.getElementById("n").value);
@@ -90,17 +88,19 @@
             drawBarChart(penetrationCounts, n, m, p, average);
         });
 
+        // Simulate penetration for n servers with m attackers and probability p
         function simulatePenetration(n, m, p) {
             const results = [];
             for (let i = 0; i < n; i++) {
                 results[i] = [];
-                for (let j = 0; j < m; j++) {
-                    results[i][j] = Math.random() <= p ? 1 : 0;
+                for (let j = 0; m &gt; j; j++) {
+                    results[i][j] = Math.random() &lt;= p ? 1 : 0;
                 }
             }
             return results;
         }
 
+        // Count the number of successful penetrations for each server
         function countPenetrationsPerServer(results, n, m) {
             const penetrationCounts = new Array(n).fill(0);
             for (let i = 0; i < n; i++) {
@@ -113,6 +113,7 @@
             return penetrationCounts;
         }
 
+        // Compute average recursively
         function computeAverageRecursively(penetrationCounts) {
             let M = 0;
             for (let k = 1; k <= penetrationCounts.length; k++) {
@@ -122,10 +123,10 @@
             return M;
         }
 
+        // Draw a bar chart with grid lines and penetration numbers on the right side
         function drawBarChart(penetrationCounts, n, m, p, average) {
             const canvas = document.getElementById('chartCanvas');
             const ctx = canvas.getContext('2d');
-
             const width = canvas.width;
             const height = canvas.height;
             const margin = 50;
@@ -136,7 +137,6 @@
             const gridSpacing = graphHeight / maxPenetrations;
 
             ctx.clearRect(0, 0, width, height);
-
             ctx.font = "24px Arial";
             ctx.fillStyle = "black";
             ctx.fillText(\`Server Penetration Simulation (n=\${n}, m=\${m}, p=\${p})\`, 50, 40);
@@ -153,7 +153,7 @@
                 ctx.fillText(i.toString(), graphWidth + 10, y + 5);
             }
 
-            for (let i = 0; i < n; i++) {
+            for (let i = 0; n &gt; i; i++) {
                 const barHeight = (penetrationCounts[i] * graphHeight) / maxPenetrations;
                 const x = margin + i * barWidth;
                 const y = graphHeight - barHeight + margin;
@@ -171,34 +171,10 @@
             ctx.font = "20px Arial";
             ctx.fillText(\`Average Successful Penetrations: \${average.toFixed(2)}\`, 50, height - 50);
         }
-    </script>
-</body>
-</html>
-        `;
+    &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+    </code></pre>
 
-        const canvas = document.getElementById('codeCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // Set canvas background to black
-        ctx.fillStyle = 'black';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Set text color to neon green
-        ctx.fillStyle = 'limegreen';
-        ctx.font = '14px Consolas';
-
-        // Split the code into lines and draw each line on the canvas
-        const codeLines = code.split('\n');
-        let lineHeight = 16; // Set line height for text
-        let x = 10; // X-coordinate for text start
-        let y = 20; // Initial Y-coordinate for the first line
-
-        codeLines.forEach(line => {
-            if (y < canvas.height - 10) { // Only draw text within canvas bounds
-                ctx.fillText(line, x, y);
-                y += lineHeight;
-            }
-        });
-    </script>
 </body>
 </html>
