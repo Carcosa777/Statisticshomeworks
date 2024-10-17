@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Code Homework 2</title>
+    <style>
+        body {
+            background-color: black;
+            color: #39FF14;
+            font-family: 'Courier New', Courier, monospace;
+            margin: 20px;
+            white-space: pre-wrap;
+        }
+        .comment {
+            color: gray;
+        }
+        code {
+            display: block;
+            background-color: black;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<code>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Penetration Simulation with Mean and Variance&lt;/title&gt;
+
+    &lt;!-- Importing Chart.js to create the line charts for the simulation --&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;
+
+    &lt;style&gt;
+        body {
+            background-color: black;
+            color: #39FF14; 
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label, h1 {
+            color: #39FF14; 
+        }
+        #chartContainer {
+            width: 800px;
+            height: 400px;
+        }
+        canvas {
+            background-color: black; 
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;h1&gt;Penetration Simulation with Overall Mean and Variance&lt;/h1&gt;
+
+&lt;!-- Section for user inputs: number of attackers, servers, probability of penetration, tick time, and time limit --&gt;
+&lt;div&gt;
+    &lt;label for="attackers"&gt;Number of Attackers (x):&lt;/label&gt;
+    &lt;input type="number" id="attackers" value="3" min="1"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="servers"&gt;Number of Servers (y):&lt;/label&gt;
+    &lt;input type="number" id="servers" value="5" min="1"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="probability"&gt;Probability of Penetration (z):&lt;/label&gt;
+    &lt;input type="number" id="probability" step="0.01" value="0.5" min="0" max="1"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="tickTime"&gt;Time Duration of Each Tick (ms) (t):&lt;/label&gt;
+    &lt;input type="number" id="tickTime" value="1000" min="100"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="timeLimit"&gt;Time Limit (seconds):&lt;/label&gt;
+    &lt;input type="number" id="timeLimit" value="10" min="1"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;!-- Buttons to start and stop the simulation --&gt;
+    &lt;button onclick="startSimulation()" style="color: black; background-color: #39FF14;"&gt;Start Simulation&lt;/button&gt;
+    &lt;button onclick="stopSimulation()" style="color: black; background-color: #39FF14;"&gt;Stop Simulation&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;!-- Section where the simulation, mean, and variance charts will be displayed --&gt;
+&lt;div id="chartContainer"&gt;
+    &lt;canvas id="simulationChart"&gt;&lt;/canvas&gt;
+    &lt;canvas id="meanChart"&gt;&lt;/canvas&gt;
+    &lt;canvas id="varianceChart"&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    let chart, meanChart, varianceChart; // Variables to store the charts
+    let simulationData = []; // Data for each attacker's success or failure
+    let simulationInterval; // Interval for running the simulation at regular ticks
+    let simulationTime = 0; // Tracks total simulation time
+    let timeLimit = 0; // Time limit for the simulation
+    let overallMeans = []; // Array to track overall mean at each tick
+    let overallVariances = []; // Array to track overall variance at each tick
+
+    // Function to generate a random color for each attacker
+    function randomColor() {
+        return 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',1)';
+    }
+
+    // Function to start the simulation
+    function startSimulation() {
+        stopSimulation(); // Stop any previous simulation
+        
+        simulationData = []; // Clear previous simulation data
+        simulationTime = 0; // Reset simulation time
+        overallMeans = []; // Reset the means
+        overallVariances = []; // Reset the variances
+        if (chart) chart.destroy(); // If the chart exists, destroy it before creating a new one
+        if (meanChart) meanChart.destroy(); // Destroy mean chart
+        if (varianceChart) varianceChart.destroy(); // Destroy variance chart
+
+        // Fetch values entered by the user
+        const numAttackers = parseInt(document.getElementById("attackers").value);
+        const penetrationProb = parseFloat(document.getElementById("probability").value);
+        const tickTime = parseInt(document.getElementById("tickTime").value);
+        timeLimit = parseInt(document.getElementById("timeLimit").value) * 1000; // Convert seconds to milliseconds
+        
+        // Initialize simulation data for each attacker
+        for (let i = 0; i < numAttackers; i++) {
+            simulationData.push({
+                label: `Attacker ${i + 1}`, // Label for each attacker's line in the chart
+                data: [0], // Start each attacker with 0 successes
+                borderColor: randomColor(), // Assign a random color to each attacker
+                fill: false
+            });
+        }
+
+        const labels = [0]; // Start with time 0 as the first tick
+
+        // Create the main simulation chart for attacker successes
+        const ctx1 = document.getElementById('simulationChart').getContext('2d');
+        chart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labels, // Time labels for each tick
+                datasets: simulationData.map(attacker => ({
+                    label: attacker.label, // Attacker label (e.g., Attacker 1, Attacker 2)
+                    data: attacker.data, // Success data for the attacker
+                    borderColor: attacker.borderColor,
+                    fill: false
+                }))
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (ticks)', // X-axis label
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Successes', // Y-axis label
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        },
+                        beginAtZero: true, // Y-axis starts at 0
+                        grid: {
+                            display: true,
+                            color: '#444' // Darker grid lines
+                        }
+                    }
+                },
+                responsive: true
+            }
+        });
+
+        // Create the chart for tracking the overall mean
+        const ctx2 = document.getElementById('meanChart').getContext('2d');
+        meanChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: labels, // Time labels for each tick
+                datasets: [{
+                    label: 'Overall Mean', // Label for the mean line
+                    data: overallMeans, // Data for the overall mean
+                    borderColor: 'white',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (ticks)', // X-axis label for mean chart
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Mean', // Y-axis label for mean chart
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        },
+                        grid: {
+                            display: true,
+                            color: '#444'
+                        }
+                    }
+                },
+                responsive: true
+            }
+        });
+
+        // Create the chart for tracking the overall variance
+        const ctx3 = document.getElementById('varianceChart').getContext('2d');
+        varianceChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: labels, // Time labels for each tick
+                datasets: [{
+                    label: 'Overall Variance', // Label for the variance line
+                    data: overallVariances, // Data for the overall variance
+                    borderColor: 'white',
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (ticks)', // X-axis label for variance chart
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Variance', // Y-axis label for variance chart
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        },
+                        grid: {
+                            display: true,
+                            color: '#444'
+                        }
+                    }
+                },
+                responsive: true
+            }
+        });
+
+        // Simulation logic that runs at each tick
+        let tick = 1;
+        simulationInterval = setInterval(() => {
+            simulationTime += tickTime; // Increment simulation time
+
+            if (simulationTime >= timeLimit) {
+                stopSimulation(); // Stop simulation when time limit is reached
+                return;
+            }
+
+            labels.push(tick); // Add the current tick to labels
+
+            // Calculate overall mean and variance for all attackers
+            let currentSuccesses = simulationData.map(attacker => attacker.data[attacker.data.length - 1]);
+
+            // Calculate the overall mean
+            let overallMean = currentSuccesses.reduce((a, b) => a + b, 0) / numAttackers;
+            overallMeans.push(overallMean); // Store the mean
+
+            // Calculate the overall variance
+            let overallVariance = currentSuccesses.reduce((sum, value) => sum + Math.pow(value - overallMean, 2), 0) / numAttackers;
+            overallVariances.push(overallVariance); // Store the variance
+
+            // Update each attacker's data (success/failure) for the next tick
+            simulationData.forEach((attacker, i) => {
+                let success = Math.random() < penetrationProb ? 1 : -1; // Success (+1) or failure (-1)
+                let lastSuccess = attacker.data[attacker.data.length - 1];
+                attacker.data.push(lastSuccess + success); // Add success or failure to the data
+            });
+
+            // Update all charts with the new data
+            chart.update();
+            meanChart.update();
+            varianceChart.update();
+            tick++;
+        }, tickTime);
+    }
+
+    // Function to stop the simulation and clear the interval
+    function stopSimulation() {
+        clearInterval(simulationInterval); // Stop the setInterval that is running the simulation
+    }
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code>
+
+</body>
+</html>
