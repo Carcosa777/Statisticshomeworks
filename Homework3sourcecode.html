@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Code in Neon Green</title>
+    <style>
+        body {
+            background-color: black;
+            color: #39FF14; /* Neon green font for code */
+            font-family: 'Courier New', Courier, monospace;
+            margin: 20px;
+            white-space: pre-wrap;
+        }
+        .comment {
+            color: gray; /* Grey color for comments */
+        }
+        code {
+            display: block;
+            background-color: black;
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+
+<code>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Continuous-Time Penetration Simulation&lt;/title&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;
+    &lt;style&gt;
+        body {
+            background-color: black;
+            color: #39FF14; /* Neon green font */
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label, h1 {
+            color: #39FF14; /* Neon green font */
+        }
+        #chartContainer {
+            width: 800px;
+            height: 400px;
+        }
+        canvas {
+            background-color: black; /* Ensure the chart background is black */
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;h1&gt;Continuous-Time Penetration Simulation&lt;/h1&gt;
+
+&lt;div&gt;
+    &lt;label for="attackers"&gt;Number of Attackers (x):&lt;/label&gt;
+    &lt;input type="number" id="attackers" value="3" min="1"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="servers"&gt;Number of Servers (y):&lt;/label&gt;
+    &lt;input type="number" id="servers" value="5" min="1"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="lambda"&gt;Lambda (Expected Attacks):&lt;/label&gt;
+    &lt;input type="number" id="lambda" step="0.01" value="5" min="0" max="100"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="subdivision"&gt;Number of Subdivisions (n):&lt;/label&gt;
+    &lt;input type="number" id="subdivision" value="100" min="10"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;label for="timeLimit"&gt;Time Limit (seconds):&lt;/label&gt;
+    &lt;input type="number" id="timeLimit" value="10" min="1"&gt;&lt;br&gt;&lt;br&gt;
+
+    &lt;button onclick="startSimulation()" style="color: black; background-color: #39FF14;"&gt;Start Simulation&lt;/button&gt;
+    &lt;button onclick="stopSimulation()" style="color: black; background-color: #39FF14;"&gt;Stop Simulation&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;div id="chartContainer"&gt;
+    &lt;canvas id="simulationChart"&gt;&lt;/canvas&gt;
+    &lt;canvas id="meanChart"&gt;&lt;/canvas&gt;
+    &lt;canvas id="varianceChart"&gt;&lt;/canvas&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    let chart, meanChart, varianceChart;
+    let simulationData = [];
+    let simulationInterval;
+    let simulationTime = 0;
+    let timeLimit = 0;
+    let overallMeans = [];
+    let overallVariances = [];
+
+    function randomColor() {
+        return 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',1)';
+    }
+
+    function startSimulation() {
+        stopSimulation(); // Stop any previous simulation if running
+
+        simulationData = [];
+        simulationTime = 0;
+        overallMeans = [];
+        overallVariances = [];
+        if (chart) chart.destroy();
+        if (meanChart) meanChart.destroy();
+        if (varianceChart) varianceChart.destroy();
+
+        const numAttackers = parseInt(document.getElementById("attackers").value);
+        const lambda = parseFloat(document.getElementById("lambda").value);
+        const n = parseInt(document.getElementById("subdivision").value);
+        const dt = 1 / n; // Infinitesimal time step (subdivision of time)
+        timeLimit = parseInt(document.getElementById("timeLimit").value) * 1000; // Convert seconds to milliseconds
+
+        // Initialize data for each attacker with random colors
+        for (let i = 0; i &lt; numAttackers; i++) {
+            simulationData.push({
+                label: `Attacker ${i + 1}`,
+                data: [0], // Start with 0 successes for each attacker
+                borderColor: randomColor(), // Random color for each attacker
+                fill: false
+            });
+        }
+
+        const labels = [0]; // Time starts at 0
+
+        // Create the main simulation chart for attacker successes
+        const ctx1 = document.getElementById('simulationChart').getContext('2d');
+        chart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labels, // Time labels (ticks)
+                datasets: simulationData.map(attacker =&gt; ({
+                    label: attacker.label,
+                    data: attacker.data,
+                    borderColor: attacker.borderColor,
+                    fill: false
+                }))
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (ticks)',
+                            color: '#39FF14' // Neon green
+                        },
+                        ticks: {
+                            color: '#39FF14' // Neon green ticks
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Successes',
+                            color: '#39FF14' // Neon green
+                        },
+                        ticks: {
+                            color: '#39FF14' // Neon green ticks
+                        },
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: '#444' // Darker grid lines for visibility
+                        }
+                    }
+                },
+                responsive: true
+            }
+        });
+
+        // Create mean chart
+        const ctx2 = document.getElementById('meanChart').getContext('2d');
+        meanChart = new Chart(ctx2, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Overall Mean',
+                    data: overallMeans,
+                    borderColor: 'white', // White color for mean line
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (ticks)',
+                            color: '#39FF14' // Neon green
+                        },
+                        ticks: {
+                            color: '#39FF14' // Neon green ticks
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Mean',
+                            color: '#39FF14' // Neon green
+                        },
+                        ticks: {
+                            color: '#39FF14' // Neon green ticks
+                        },
+                        grid: {
+                            display: true,
+                            color: '#444' // Darker grid lines
+                        }
+                    }
+                },
+                responsive: true
+            }
+        });
+
+        // Create variance chart
+        const ctx3 = document.getElementById('varianceChart').getContext('2d');
+        varianceChart = new Chart(ctx3, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Overall Variance',
+                    data: overallVariances,
+                    borderColor: 'white', // White color for variance line
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (ticks)',
+                            color: '#39FF14' // Neon green
+                        },
+                        ticks: {
+                            color: '#39FF14' // Neon green ticks
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Variance',
+                            color: '#39FF14' // Neon green
+                        },
+                        ticks: {
+                            color: '#39FF14' // Neon green ticks
+                        },
+                        grid: {
+                            display: true,
+                            color: '#444' // Darker grid lines
+                        }
+                    }
+                },
+                responsive: true
+            }
+        });
+
+        // Simulation logic
+        let tick = 1;
+        simulationInterval = setInterval(() =&gt; {
+            simulationTime += (dt * 1000); // Simulate in smaller time steps (dt)
+
+            if (simulationTime &gt;= timeLimit) {
+                stopSimulation(); // Stop simulation when time limit is reached
+                return;
+            }
+
+            labels.push(tick); // Add the current tick to labels
+
+            // Calculate overall mean and variance
+            let currentSuccesses = simulationData.map(attacker =&gt; attacker.data[attacker.data.length - 1]);
+
+            // Calculate the overall mean
+            let overallMean = currentSuccesses.reduce((a, b) =&gt; a + b, 0) / numAttackers;
+            overallMeans.push(overallMean);
+
+            // Calculate the overall variance
+            let overallVariance = currentSuccesses.reduce((sum, value) =&gt; sum + Math.pow(value - overallMean, 2), 0) / numAttackers;
+            overallVariances.push(overallVariance);
+
+            // Update simulation data for attackers
+            simulationData.forEach((attacker, i) =&gt; {
+                let jump = Math.random() &lt; (lambda * dt) ? 1 : 0; // Attack happens with probability Lambda * dt
+                let lastSuccess = attacker.data[attacker.data.length - 1];
+                attacker.data.push(lastSuccess + jump); // Add success (jump) or no jump
+            });
+
+            // Update charts
+            chart.update();
+            meanChart.update();
+            varianceChart.update();
+            tick++;
+        }, dt * 1000); // Time step as dt in milliseconds
+    }
+
+    function stopSimulation() {
+        clearInterval(simulationInterval);
+    }
+&lt;/script&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code>
+
+</body>
+</html>
