@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulation Source Code</title>
+    <title>Display Source Code</title>
     <style>
         body {
             background-color: black;
@@ -26,11 +26,9 @@
 </head>
 <body>
 
-<h1>Simulation Source Code</h1>
+<h1>Source Code Display</h1>
 
 <pre>
-// HTML and JavaScript Code for Continuous-Time Simulation
-
 &lt;!DOCTYPE html&gt;
 &lt;html lang="en"&gt;
 &lt;head&gt;
@@ -46,30 +44,24 @@
             margin: 20px;
         }
         label, h1 {
-            color: #39FF14; /* Neon green font */
+            color: #39FF14;
         }
         #chartContainer {
             width: 800px;
             height: 400px;
         }
         canvas {
-            background-color: black; /* Ensure the chart background is black */
+            background-color: black;
         }
     &lt;/style&gt;
 &lt;/head&gt;
 &lt;body&gt;
 
-&lt;h1&gt;Continuous-Time Penetration Simulation&lt;/h1&gt;
+&lt;h1&gt;Continuous-Time Wiener Process Simulation&lt;/h1&gt;
 
 &lt;div&gt;
-    &lt;label for="attackers"&gt;Number of Attackers (x):&lt;/label&gt;
+    &lt;label for="attackers"&gt;Number of Particles (Paths):&lt;/label&gt;
     &lt;input type="number" id="attackers" value="3" min="1"&gt;&lt;br&gt;&lt;br&gt;
-
-    &lt;label for="servers"&gt;Number of Servers (y):&lt;/label&gt;
-    &lt;input type="number" id="servers" value="5" min="1"&gt;&lt;br&gt;&lt;br&gt;
-
-    &lt;label for="lambda"&gt;Lambda (Expected Attacks):&lt;/label&gt;
-    &lt;input type="number" id="lambda" step="0.01" value="5" min="0" max="100"&gt;&lt;br&gt;&lt;br&gt;
 
     &lt;label for="subdivision"&gt;Number of Subdivisions (n):&lt;/label&gt;
     &lt;input type="number" id="subdivision" value="100" min="10"&gt;&lt;br&gt;&lt;br&gt;
@@ -83,43 +75,34 @@
 
 &lt;div id="chartContainer"&gt;
     &lt;canvas id="simulationChart"&gt;&lt;/canvas&gt;
-    &lt;canvas id="meanChart"&gt;&lt;/canvas&gt;
-    &lt;canvas id="varianceChart"&gt;&lt;/canvas&gt;
 &lt;/div&gt;
 
 &lt;script&gt;
-    let chart, meanChart, varianceChart;
+    let chart;
     let simulationData = [];
     let simulationInterval;
     let simulationTime = 0;
     let timeLimit = 0;
-    let overallMeans = [];
-    let overallVariances = [];
 
     function randomColor() {
         return 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',1)';
     }
 
     function startSimulation() {
-        stopSimulation(); // Stop any previous simulation if running
+        stopSimulation();
 
         simulationData = [];
         simulationTime = 0;
-        overallMeans = [];
-        overallVariances = [];
         if (chart) chart.destroy();
-        if (meanChart) meanChart.destroy();
-        if (varianceChart) varianceChart.destroy();
 
-        const numAttackers = parseInt(document.getElementById("attackers").value);
-        const lambda = parseFloat(document.getElementById("lambda").value);
+        const numParticles = parseInt(document.getElementById("attackers").value);
         const n = parseInt(document.getElementById("subdivision").value);
-        const dt = 1 / n; // Infinitesimal time step (subdivision of time)
-        timeLimit = parseInt(document.getElementById("timeLimit").value) * 1000; // Convert seconds to milliseconds
+        const dt = 1 / n;
+        timeLimit = parseInt(document.getElementById("timeLimit").value) * 1000;
 
-        for (let i = 0; i &lt; numAttackers; i++) {
+        for (let i = 0; i &lt; numParticles; i++) {
             simulationData.push({
-                label: `Attacker ${i + 1}`,
+                label: `Path ${i + 1}`,
                 data: [0],
                 borderColor: randomColor(),
                 fill: false
@@ -127,16 +110,15 @@
         }
 
         const labels = [0];
-
         const ctx1 = document.getElementById('simulationChart').getContext('2d');
         chart = new Chart(ctx1, {
             type: 'line',
             data: {
                 labels: labels,
-                datasets: simulationData.map(attacker => ({
-                    label: attacker.label,
-                    data: attacker.data,
-                    borderColor: attacker.borderColor,
+                datasets: simulationData.map(particle =&gt; ({
+                    label: particle.label,
+                    data: particle.data,
+                    borderColor: particle.borderColor,
                     fill: false
                 }))
             },
@@ -148,24 +130,16 @@
                             text: 'Time (ticks)',
                             color: '#39FF14'
                         },
-                        ticks: {
-                            color: '#39FF14'
-                        }
+                        ticks: { color: '#39FF14' }
                     },
                     y: {
                         title: {
                             display: true,
-                            text: 'Successes',
+                            text: 'Position',
                             color: '#39FF14'
                         },
-                        ticks: {
-                            color: '#39FF14'
-                        },
-                        beginAtZero: true,
-                        grid: {
-                            display: true,
-                            color: '#444'
-                        }
+                        ticks: { color: '#39FF14' },
+                        grid: { display: true, color: '#444' }
                     }
                 },
                 responsive: true
@@ -173,9 +147,8 @@
         });
 
         let tick = 1;
-        simulationInterval = setInterval(() => {
+        simulationInterval = setInterval(() =&gt; {
             simulationTime += (dt * 1000);
-
             if (simulationTime &gt;= timeLimit) {
                 stopSimulation();
                 return;
@@ -183,10 +156,10 @@
 
             labels.push(tick);
 
-            simulationData.forEach((attacker, i) => {
-                let jump = Math.random() &lt; (lambda * dt) ? 1 : 0;
-                let lastSuccess = attacker.data[attacker.data.length - 1];
-                attacker.data.push(lastSuccess + jump);
+            simulationData.forEach((particle, i) =&gt; {
+                let lastPosition = particle.data[particle.data.length - 1];
+                let jump = Math.random() &lt; 0.5 ? Math.sqrt(dt) : -Math.sqrt(dt);
+                particle.data.push(lastPosition + jump);
             });
 
             chart.update();
