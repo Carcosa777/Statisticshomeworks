@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulation Code Display</title>
+    <style>
+        body {
+            background-color: black;
+            color: #39FF14; /* Neon green font */
+            font-family: Consolas, monospace;
+            margin: 20px;
+        }
+        h1 {
+            color: #39FF14;
+            text-align: center;
+        }
+        pre {
+            background-color: #111;
+            padding: 20px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        code {
+            color: #39FF14;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+
+<h1>Continuous-Time Simulation Code</h1>
+
+<pre><code>
+// HTML and JavaScript Code for Continuous-Time Simulation
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Continuous-Time Penetration Simulation</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            background-color: black;
+            color: #39FF14; /* Neon green font */
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        label, h1 {
+            color: #39FF14; /* Neon green font */
+        }
+        #chartContainer {
+            width: 800px;
+            height: 400px;
+        }
+        canvas {
+            background-color: black; /* Ensure the chart background is black */
+        }
+    </style>
+</head>
+<body>
+
+<h1>Continuous-Time Penetration Simulation</h1>
+
+<div>
+    <label for="attackers">Number of Attackers (x):</label>
+    <input type="number" id="attackers" value="3" min="1"><br><br>
+
+    <label for="servers">Number of Servers (y):</label>
+    <input type="number" id="servers" value="5" min="1"><br><br>
+
+    <label for="lambda">Lambda (Expected Attacks):</label>
+    <input type="number" id="lambda" step="0.01" value="5" min="0" max="100"><br><br>
+
+    <label for="subdivision">Number of Subdivisions (n):</label>
+    <input type="number" id="subdivision" value="100" min="10"><br><br>
+
+    <label for="timeLimit">Time Limit (seconds):</label>
+    <input type="number" id="timeLimit" value="10" min="1"><br><br>
+
+    <button onclick="startSimulation()" style="color: black; background-color: #39FF14;">Start Simulation</button>
+    <button onclick="stopSimulation()" style="color: black; background-color: #39FF14;">Stop Simulation</button>
+</div>
+
+<div id="chartContainer">
+    <canvas id="simulationChart"></canvas>
+    <canvas id="meanChart"></canvas>
+    <canvas id="varianceChart"></canvas>
+</div>
+
+<script>
+    let chart, meanChart, varianceChart;
+    let simulationData = [];
+    let simulationInterval;
+    let simulationTime = 0;
+    let timeLimit = 0;
+    let overallMeans = [];
+    let overallVariances = [];
+
+    function randomColor() {
+        return 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',1)';
+    }
+
+    function startSimulation() {
+        stopSimulation(); // Stop any previous simulation if running
+
+        simulationData = [];
+        simulationTime = 0;
+        overallMeans = [];
+        overallVariances = [];
+        if (chart) chart.destroy();
+        if (meanChart) meanChart.destroy();
+        if (varianceChart) varianceChart.destroy();
+
+        const numAttackers = parseInt(document.getElementById("attackers").value);
+        const lambda = parseFloat(document.getElementById("lambda").value);
+        const n = parseInt(document.getElementById("subdivision").value);
+        const dt = 1 / n; // Infinitesimal time step (subdivision of time)
+        timeLimit = parseInt(document.getElementById("timeLimit").value) * 1000; // Convert seconds to milliseconds
+
+        for (let i = 0; i < numAttackers; i++) {
+            simulationData.push({
+                label: `Attacker ${i + 1}`,
+                data: [0],
+                borderColor: randomColor(),
+                fill: false
+            });
+        }
+
+        const labels = [0];
+
+        const ctx1 = document.getElementById('simulationChart').getContext('2d');
+        chart = new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: simulationData.map(attacker => ({
+                    label: attacker.label,
+                    data: attacker.data,
+                    borderColor: attacker.borderColor,
+                    fill: false
+                }))
+            },
+            options: {
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Time (ticks)',
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Successes',
+                            color: '#39FF14'
+                        },
+                        ticks: {
+                            color: '#39FF14'
+                        },
+                        beginAtZero: true,
+                        grid: {
+                            display: true,
+                            color: '#444'
+                        }
+                    }
+                },
+                responsive: true
+            }
+        });
+
+        let tick = 1;
+        simulationInterval = setInterval(() => {
+            simulationTime += (dt * 1000);
+
+            if (simulationTime >= timeLimit) {
+                stopSimulation();
+                return;
+            }
+
+            labels.push(tick);
+
+            simulationData.forEach((attacker, i) => {
+                let jump = Math.random() < (lambda * dt) ? 1 : 0;
+                let lastSuccess = attacker.data[attacker.data.length - 1];
+                attacker.data.push(lastSuccess + jump);
+            });
+
+            chart.update();
+            tick++;
+        }, dt * 1000);
+    }
+
+    function stopSimulation() {
+        clearInterval(simulationInterval);
+    }
+</script>
+
+</body>
+</html>
+
+</code></pre>
+
+</body>
+</html>
