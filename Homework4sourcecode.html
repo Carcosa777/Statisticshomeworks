@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simulation Code Display</title>
+    <title>Simulation Source Code</title>
     <style>
         body {
             background-color: black;
@@ -20,28 +20,25 @@
             padding: 20px;
             border-radius: 5px;
             overflow-x: auto;
-        }
-        code {
-            color: #39FF14;
-            white-space: pre-wrap;
+            white-space: pre-wrap; /* Allows line breaks in the code */
         }
     </style>
 </head>
 <body>
 
-<h1>Continuous-Time Simulation Code</h1>
+<h1>Simulation Source Code</h1>
 
-<pre><code>
+<pre>
 // HTML and JavaScript Code for Continuous-Time Simulation
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Continuous-Time Penetration Simulation</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <style>
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+    &lt;title&gt;Continuous-Time Penetration Simulation&lt;/title&gt;
+    &lt;script src="https://cdn.jsdelivr.net/npm/chart.js"&gt;&lt;/script&gt;
+    &lt;style&gt;
         body {
             background-color: black;
             color: #39FF14; /* Neon green font */
@@ -58,39 +55,39 @@
         canvas {
             background-color: black; /* Ensure the chart background is black */
         }
-    </style>
-</head>
-<body>
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
 
-<h1>Continuous-Time Penetration Simulation</h1>
+&lt;h1&gt;Continuous-Time Penetration Simulation&lt;/h1&gt;
 
-<div>
-    <label for="attackers">Number of Attackers (x):</label>
-    <input type="number" id="attackers" value="3" min="1"><br><br>
+&lt;div&gt;
+    &lt;label for="attackers"&gt;Number of Attackers (x):&lt;/label&gt;
+    &lt;input type="number" id="attackers" value="3" min="1"&gt;&lt;br&gt;&lt;br&gt;
 
-    <label for="servers">Number of Servers (y):</label>
-    <input type="number" id="servers" value="5" min="1"><br><br>
+    &lt;label for="servers"&gt;Number of Servers (y):&lt;/label&gt;
+    &lt;input type="number" id="servers" value="5" min="1"&gt;&lt;br&gt;&lt;br&gt;
 
-    <label for="lambda">Lambda (Expected Attacks):</label>
-    <input type="number" id="lambda" step="0.01" value="5" min="0" max="100"><br><br>
+    &lt;label for="lambda"&gt;Lambda (Expected Attacks):&lt;/label&gt;
+    &lt;input type="number" id="lambda" step="0.01" value="5" min="0" max="100"&gt;&lt;br&gt;&lt;br&gt;
 
-    <label for="subdivision">Number of Subdivisions (n):</label>
-    <input type="number" id="subdivision" value="100" min="10"><br><br>
+    &lt;label for="subdivision"&gt;Number of Subdivisions (n):&lt;/label&gt;
+    &lt;input type="number" id="subdivision" value="100" min="10"&gt;&lt;br&gt;&lt;br&gt;
 
-    <label for="timeLimit">Time Limit (seconds):</label>
-    <input type="number" id="timeLimit" value="10" min="1"><br><br>
+    &lt;label for="timeLimit"&gt;Time Limit (seconds):&lt;/label&gt;
+    &lt;input type="number" id="timeLimit" value="10" min="1"&gt;&lt;br&gt;&lt;br&gt;
 
-    <button onclick="startSimulation()" style="color: black; background-color: #39FF14;">Start Simulation</button>
-    <button onclick="stopSimulation()" style="color: black; background-color: #39FF14;">Stop Simulation</button>
-</div>
+    &lt;button onclick="startSimulation()" style="color: black; background-color: #39FF14;"&gt;Start Simulation&lt;/button&gt;
+    &lt;button onclick="stopSimulation()" style="color: black; background-color: #39FF14;"&gt;Stop Simulation&lt;/button&gt;
+&lt;/div&gt;
 
-<div id="chartContainer">
-    <canvas id="simulationChart"></canvas>
-    <canvas id="meanChart"></canvas>
-    <canvas id="varianceChart"></canvas>
-</div>
+&lt;div id="chartContainer"&gt;
+    &lt;canvas id="simulationChart"&gt;&lt;/canvas&gt;
+    &lt;canvas id="meanChart"&gt;&lt;/canvas&gt;
+    &lt;canvas id="varianceChart"&gt;&lt;/canvas&gt;
+&lt;/div&gt;
 
-<script>
+&lt;script&gt;
     let chart, meanChart, varianceChart;
     let simulationData = [];
     let simulationInterval;
@@ -120,7 +117,7 @@
         const dt = 1 / n; // Infinitesimal time step (subdivision of time)
         timeLimit = parseInt(document.getElementById("timeLimit").value) * 1000; // Convert seconds to milliseconds
 
-        for (let i = 0; i < numAttackers; i++) {
+        for (let i = 0; i &lt; numAttackers; i++) {
             simulationData.push({
                 label: `Attacker ${i + 1}`,
                 data: [0],
@@ -179,7 +176,7 @@
         simulationInterval = setInterval(() => {
             simulationTime += (dt * 1000);
 
-            if (simulationTime >= timeLimit) {
+            if (simulationTime &gt;= timeLimit) {
                 stopSimulation();
                 return;
             }
@@ -187,7 +184,7 @@
             labels.push(tick);
 
             simulationData.forEach((attacker, i) => {
-                let jump = Math.random() < (lambda * dt) ? 1 : 0;
+                let jump = Math.random() &lt; (lambda * dt) ? 1 : 0;
                 let lastSuccess = attacker.data[attacker.data.length - 1];
                 attacker.data.push(lastSuccess + jump);
             });
@@ -200,12 +197,11 @@
     function stopSimulation() {
         clearInterval(simulationInterval);
     }
-</script>
+&lt;/script&gt;
 
-</body>
-</html>
-
-</code></pre>
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
 
 </body>
 </html>
